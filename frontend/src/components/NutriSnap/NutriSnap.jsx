@@ -1,5 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Home, TrendingUp, User, Plus, Search, Target, Flame, Droplet, Apple, Brain, Calendar, Bell, LogOut, X, MessageSquare, Activity, Send, Smile, Mail, Lock, UserPlus, Sparkles, ChevronRight, Utensils, Clock, Trash2 } from 'lucide-react';
+import {
+  Camera,
+  Home,
+  TrendingUp,
+  User,
+  Plus,
+  Search,
+  Target,
+  Droplet,
+  Apple,
+  Brain,
+  Calendar,
+  Bell,
+  LogOut,
+  X,
+  Activity,
+  Send,
+  Smile,
+  Mail,
+  Lock,
+  UserPlus,
+  Sparkles,
+  ChevronRight,
+  Utensils,
+  Clock,
+  Trash2
+} from "lucide-react";
+import CameraCapture from "../CameraCapture";
+import nutritionDB from "../data/nutritionDB";
 
 const NutriSnap = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -15,7 +43,8 @@ const NutriSnap = () => {
   const [meals, setMeals] = useState([]);
   const [coachMessages, setCoachMessages] = useState([]);
   const [showCoach, setShowCoach] = useState(false);
-  
+  const [loadingScan, setLoadingScan] = useState(false);
+
   const [coachInput, setCoachInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showAddMeal, setShowAddMeal] = useState(false);
@@ -29,28 +58,15 @@ const NutriSnap = () => {
   const chatEndRef = useRef(null);
   const textareaRef = useRef(null);
 
-  const foodDatabase = [
-    { name: 'Oatmeal', calories: 150, protein: 5, carbs: 27, fats: 3, unit: '100g' },
-    { name: 'Banana', calories: 105, protein: 1, carbs: 27, fats: 0, unit: '1 medium' },
-    { name: 'Chicken Breast', calories: 165, protein: 31, carbs: 0, fats: 4, unit: '100g' },
-    { name: 'Brown Rice', calories: 216, protein: 5, carbs: 45, fats: 2, unit: '1 cup' },
-    { name: 'Greek Yogurt', calories: 100, protein: 17, carbs: 6, fats: 0, unit: '170g' },
-    { name: 'Salmon', calories: 206, protein: 22, carbs: 0, fats: 13, unit: '100g' },
-    { name: 'Almonds', calories: 170, protein: 6, carbs: 6, fats: 15, unit: '28g' },
-    { name: 'Eggs', calories: 155, protein: 13, carbs: 1, fats: 11, unit: '2 large' },
-    { name: 'Broccoli', calories: 31, protein: 3, carbs: 6, fats: 0, unit: '100g' },
-    { name: 'Sweet Potato', calories: 86, protein: 2, carbs: 20, fats: 0, unit: '100g' },
-    { name: 'Avocado', calories: 160, protein: 2, carbs: 9, fats: 15, unit: '1/2 fruit' },
-    { name: 'Quinoa', calories: 222, protein: 8, carbs: 39, fats: 4, unit: '1 cup' },
-    { name: 'Tuna', calories: 132, protein: 28, carbs: 0, fats: 1, unit: '100g' },
-    { name: 'Apple', calories: 95, protein: 0, carbs: 25, fats: 0, unit: '1 medium' },
-    { name: 'Peanut Butter', calories: 190, protein: 8, carbs: 7, fats: 16, unit: '2 tbsp' }
-  ];
-
-  const filteredFoods = foodDatabase.filter(food => 
-    food.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+  const filteredFoods = Object.keys(nutritionDB)
+  .filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()))
+  .map(key => ({
+    name: key,
+    calories: nutritionDB[key].calories,
+    protein: nutritionDB[key].protein,
+    carbs: nutritionDB[key].carbs,
+    fats: nutritionDB[key].fats
+  }));
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -146,31 +162,6 @@ const NutriSnap = () => {
     }
   };
 
-  const generateAdvancedResponse = (msg) => {
-    const m = msg.toLowerCase();
-    const firstName = userData.name.split(' ')[0];
-    
-    if (m.match(/hi|hello|hey/)) {
-      return `Hey ${firstName}! 😊\n\nGreat to hear from you! I'm here to support your wellness journey. What would you like to talk about today?`;
-    }
-    
-    if (m.match(/tired|exhausted|low energy/)) {
-      return `I hear you ${firstName} 😔\n\nLet's boost your energy:\n\n**Current Stats:**\n• Protein: ${todayStats.protein}g/${userData.proteinGoal}g\n• Calories: ${todayStats.calories}/${userData.dailyCalorieGoal}\n\n**Quick Energy Boosters:**\n🥚 Hard-boiled eggs (78 cal, 6g protein)\n🍌 Banana with almond butter (190 cal)\n🥤 Protein smoothie (250 cal, 25g protein)\n\nWhat sounds good?`;
-    }
-    
-    if (m.match(/meal|dinner|lunch|breakfast|eat/)) {
-      const remaining = userData.dailyCalorieGoal - todayStats.calories;
-      return `I'd love to help plan your meal! 🍳\n\n**Available Calories:** ${remaining}\n\n**🌅 Breakfast (350 cal):**\n• Protein oatmeal with berries\n• Veggie omelet with toast\n\n**🥗 Lunch (450 cal):**\n• Chicken Caesar salad\n• Quinoa bowl with veggies\n\n**🍽️ Dinner (550 cal):**\n• Salmon with asparagus\n• Chicken with sweet potato\n\nWhich meal are you planning?`;
-    }
-    
-    if (m.match(/protein/)) {
-      const left = userData.proteinGoal - todayStats.protein;
-      return `Let's talk protein! 💪\n\n**Status:**\n• Current: ${todayStats.protein}g\n• Goal: ${userData.proteinGoal}g\n• Remaining: ${left}g\n\n**Top Sources:**\n🍗 Chicken: 31g per 100g\n🐟 Salmon: 25g per 100g\n🥚 Greek yogurt: 17g per cup\n\nWhich would you like to add?`;
-    }
-    
-    return `I'm here to help! 😊\n\n**Your Stats Today:**\n• Calories: ${todayStats.calories}/${userData.dailyCalorieGoal}\n• Protein: ${todayStats.protein}g/${userData.proteinGoal}g\n• Water: ${todayStats.water}/8\n\nWhat would you like to know?`;
-  };
-
   const handleSignup = () => {
     if (!signupData.name || !signupData.email || !signupData.age || !signupData.weight) {
       alert('Please fill all fields');
@@ -220,43 +211,66 @@ const NutriSnap = () => {
     }]);
   };
 
-  const handleCoachMessage = () => {
-    if (!coachInput.trim()) return;
-    
-    const userMsg = { 
-      id: Date.now(), 
-      type: 'user', 
-      message: coachInput, 
-      time: new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'}) 
-    };
-    
-    setCoachMessages([...coachMessages, userMsg]);
-    const inputCopy = coachInput;
-    setCoachInput('');
-    setIsTyping(true);
-    
-    setTimeout(() => {
-      const aiMsg = { 
-        id: Date.now()+1, 
-        type: 'ai', 
-        message: generateAdvancedResponse(inputCopy), 
-        time: new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'}) 
-      };
-      setCoachMessages(prev => [...prev, aiMsg]);
-      setIsTyping(false);
-    }, 1500);
+const handleCoachMessage = async () => {
+  if (!coachInput.trim()) return;
+
+  const userMsg = {
+    id: Date.now(),
+    type: "user",
+    message: coachInput,
+    time: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
   };
 
-  const handleFoodScan = () => {
-    setShowCamera(true);
-    setTimeout(() => {
-      const food = {id:Date.now(), name:'Grilled Chicken', type:selectedMealType, calories:165, protein:31, carbs:0, fats:4, time:new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})};
-      setMeals([...meals, food]);
-      setTodayStats({...todayStats, calories:todayStats.calories+165, protein:todayStats.protein+31, fats:todayStats.fats+4});
-      setShowCamera(false);
-      setShowAddMeal(false);
-    }, 2000);
-  };
+  setCoachMessages(prev => [...prev, userMsg]);
+
+const payload = {
+  message: coachInput,
+  stats: todayStats,
+  meals: meals,
+  goals: {
+    calories: userData?.dailyCalorieGoal || 2000,
+    protein: userData?.proteinGoal || 75,
+    carbs: userData?.carbsGoal || 250,
+    fats: userData?.fatsGoal || 60,
+    water: 8,
+    steps: 7000
+  }
+};
+
+
+
+  setCoachInput("");
+  setIsTyping(true);
+
+  try {
+    const res = await fetch("http://localhost:5000/api/coach", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json();
+
+    const aiMsg = {
+      id: Date.now() + 1,
+      type: "ai",
+      message: json.reply || "I'm here to help!",
+      time: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+    };
+
+    setCoachMessages(prev => [...prev, aiMsg]);
+  } catch (err) {
+    console.error(err);
+    alert("Coach backend error");
+  }
+
+  setIsTyping(false);
+};
+
+
+  function handleFoodScan() {
+  setShowCamera(true);
+}
 
   if (!isAuthenticated) {
     return (
@@ -335,6 +349,108 @@ const NutriSnap = () => {
   const proteinPct = (todayStats.protein/userData.proteinGoal)*100;
   const carbsPct = (todayStats.carbs/userData.carbsGoal)*100;
   const fatsPct = (todayStats.fats/userData.fatsGoal)*100;
+  
+  // REAL AI SCAN HANDLER-1
+
+async function handleSearchAI(query) {
+  if (!query.trim()) {
+    alert("Enter something to search!");
+    return;
+  }
+
+  const res = await fetch("http://localhost:5000/api/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query })
+  });
+
+  const json = await res.json();
+
+  if (!json.success) {
+    alert("AI could not find nutrition.");
+    return;
+  }
+
+  const food = {
+    id: Date.now(),
+    name: json.food.name,
+    type: selectedMealType,
+    calories: json.food.calories,
+    protein: json.food.protein,
+    carbs: json.food.carbs,
+    fats: json.food.fats,
+    time: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+  };
+
+  // add meal same as AI scan
+  setMeals(prev => [...prev, food]);
+
+  setTodayStats(prev => ({
+    ...prev,
+    calories: prev.calories + food.calories,
+    protein: prev.protein + food.protein,
+    carbs: prev.carbs + food.carbs,
+    fats: prev.fats + food.fats,
+  }));
+
+  alert(`Added: ${food.name}`);
+}
+
+async function handleImageUpload(dataUrl) {
+  try {
+    setLoadingScan(true);
+
+    // convert dataURL → Blob
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+
+    const formData = new FormData();
+    formData.append("image", blob, `scan-${Date.now()}.jpg`);
+    formData.append("mealType", selectedMealType || "Breakfast");
+
+    const api = "http://localhost:5000/api/scan"; // backend route
+    const r = await fetch(api, { method: "POST", body: formData });
+
+    if (!r.ok) {
+      alert("Scan failed.");
+      return;
+    }
+
+    const json = await r.json();
+    if (!json.success) {
+      alert("AI could not identify the food.");
+      return;
+    }
+
+    const food = {
+      id: Date.now(),
+      name: json.food.name || "Unknown",
+      type: selectedMealType,
+      calories: json.food.calories || 0,
+      protein: json.food.protein || 0,
+      carbs: json.food.carbs || 0,
+      fats: json.food.fats || 0,
+      time: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+    };
+
+    setMeals(prev => [...prev, food]);
+
+    setTodayStats(prev => ({
+      ...prev,
+      calories: prev.calories + food.calories,
+      protein: prev.protein + food.protein,
+      carbs: prev.carbs + food.carbs,
+      fats: prev.fats + food.fats,
+    }));
+  } catch (err) {
+    console.error(err);
+    alert("Scan failed.");
+  } finally {
+    setLoadingScan(false);
+    setShowCamera(false);
+    setShowAddMeal(false);
+  }
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -623,6 +739,14 @@ const NutriSnap = () => {
                   />
                 </div>
 
+                <button 
+  onClick={() => handleSearchAI(searchQuery)}
+  className="w-full mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-semibold"
+>
+  Search with AI
+</button>
+
+
                 {searchQuery && (
                   <div className="max-h-60 overflow-y-auto space-y-2">
                     {filteredFoods.map((food,i)=>(
@@ -658,7 +782,8 @@ const NutriSnap = () => {
             </div>
           </div>
         )}
-
+        
+        
         {showManualEntry && (
           <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
@@ -720,17 +845,14 @@ const NutriSnap = () => {
           </div>
         )}
 
-        {showCamera && (
-          <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-64 h-64 border-4 border-emerald-500 rounded-3xl mb-6 flex items-center justify-center">
-                <Camera className="w-24 h-24 text-emerald-500 animate-pulse" />
-              </div>
-              <p className="text-white text-xl font-bold mb-2">AI Scanning...</p>
-              <p className="text-gray-300">Analyzing nutrition</p>
-            </div>
-          </div>
-        )}
+{showCamera && (
+  <CameraCapture
+    onClose={() => setShowCamera(false)}
+    onCapture={handleImageUpload}  
+  />
+)}
+
+
 
         {showCoach && (
           <div className="fixed inset-0 bg-white z-50 flex flex-col max-w-md mx-auto">
@@ -858,3 +980,8 @@ const NutriSnap = () => {
 };
 
 export default NutriSnap;
+
+
+
+
+

@@ -1,4 +1,4 @@
-const User = require("../models/user"); // ✅ CommonJS
+const User = require("../models/User"); // ✅ CommonJS
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 

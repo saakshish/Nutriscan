@@ -1,14 +1,8 @@
-// src/App.js
-
-import React from 'react';
-import NutriSnap from './components/NutriSnap';
+import NutriSnap from "./components/NutriSnap/NutriSnap";
 
 function App() {
-  return (
-    <div className="App">
-      <NutriSnap />
-    </div>
-  );
+  return <NutriSnap />;
 }
 
 export default App;
+

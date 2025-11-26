@@ -1,37 +1,50 @@
-const express = require("express");
-const axios = require("axios");
-const router = express.Router();
+// backend/routes/nutrition.js
+import axios from "axios";
 
-const USDA_API_KEY = "YOUR_USDA_API_KEY"; // replace with your key
+const USDA_API_KEY = "YOUR_USDA_API_KEY"; // replace with your real key
 
-// Route: GET /api/nutrition/:query
-router.get("/:query", async (req, res) => {
+export async function getNutrition(query) {
   try {
-    const query = req.params.query;
     const response = await axios.get(
       `https://api.nal.usda.gov/fdc/v1/foods/search?query=${query}&pageSize=1&api_key=${USDA_API_KEY}`
     );
 
     if (!response.data.foods || response.data.foods.length === 0) {
-      return res.status(404).json({ error: "Food not found" });
+      return null;
     }
 
-    // Pick first food item
     const food = response.data.foods[0];
-    const nutrients = food.foodNutrients.map(n => ({
-      name: n.nutrientName,
-      value: n.value,
-      unit: n.unitName
-    }));
 
-    res.json({
-      name: food.description,
-      nutrients: nutrients
+    const nutrients = {};
+
+    food.foodNutrients.forEach(n => {
+      if (n.nutrientName.includes("Energy") && n.unitName === "KCAL")
+        nutrients.calories = n.value;
+
+      if (n.nutrientName === "Protein")
+        nutrients.protein = n.value;
+
+      if (n.nutrientName.includes("Carbohydrate"))
+        nutrients.carbs = n.value;
+
+      if (n.nutrientName.includes("Total lipid"))
+        nutrients.fats = n.value;
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Something went wrong" });
-  }
-});
 
-module.exports = router;
+    return {
+      name: food.description,
+      calories: nutrients.calories || 0,
+      protein: nutrients.protein || 0,
+      carbs: nutrients.carbs || 0,
+      fats: nutrients.fats || 0
+    };
+
+  } catch (err) {
+    console.error("USDA API ERROR:", err);
+    return null;
+  }
+}
+
+export default { getNutrition };
+
+

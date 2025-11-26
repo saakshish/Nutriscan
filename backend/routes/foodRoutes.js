@@ -1,10 +1,15 @@
 import express from "express";
-import { addFood, getFoods } from "../controllers/foodController.js";
-import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/add", protect, addFood);
-router.get("/all", protect, getFoods);
+// Simple test route (no auth)
+router.get("/all", (req, res) => {
+  res.json([
+    { name: "Apple", calories: 52, protein: 0.3, carbs: 14, fats: 0.2 },
+    { name: "Banana", calories: 96, protein: 1.3, carbs: 27, fats: 0.3 },
+  ]);
+});
 
 export default router;
+
+

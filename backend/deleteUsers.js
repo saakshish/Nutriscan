@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import User from "./models/user.js";
+import User from "./models/User.js";
 
 mongoose.connect("mongodb://127.0.0.1:27017/nutriscan")
   .then(async () => {
